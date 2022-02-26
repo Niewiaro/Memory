@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Memory
 {
@@ -26,6 +28,7 @@ namespace Memory
                     break;
             }
             trials = chances;
+            red = false;
 
             int hw = height * width;
             int[] wordIndex = RandomNoDuplicate(hw / 2, words.Length);
@@ -66,6 +69,7 @@ namespace Memory
                     if (findIndex(list[listLenght - 2]) != index + 1)
                     {
                         chances--;
+                        red = true;
                         Print();
                         list.RemoveAt(listLenght - 1);
                         list.RemoveAt(listLenght - 2);       
@@ -77,6 +81,7 @@ namespace Memory
                     if (findIndex(list[listLenght - 2]) != index - 1)
                     {
                         chances--;
+                        red = true;
                         Print();
                         list.RemoveAt(listLenght - 1);
                         list.RemoveAt(listLenght - 2);         
@@ -86,17 +91,104 @@ namespace Memory
             if (list.Count == width * height)
             {
                 sw.Stop();
+                string time = sw.Elapsed.ToString();
+                int count = trials - chances;
                 Console.WriteLine("\nYou won! :)");  
-                Console.WriteLine("Your time was {0}", sw.Elapsed);
-                Console.WriteLine("You solved the memory game after using {0} chances", trials - chances);
+                Console.WriteLine("Your time was " +  time);
+                Console.WriteLine("You solved the memory game after using {0} chances", count);
+                save(time, count);
                 return false;
             }
             if (chances == 0)
             {
-                Console.WriteLine("\nYou have lost! :("); 
+                Console.WriteLine("\nYou have lost! :(");
+                top();
                 return false;
             }
+            red = false;
             return true;            
+        }
+
+        private void save(string time, int tries)
+        {
+            Console.Write("\nEnter your name: ");
+            var dateString = DateTime.Now.ToString("yyyy-MM-dd");
+            string text = time + " | " + Console.ReadLine() + " | " + dateString + " | " + tries.ToString();
+
+            using (StreamWriter sw = File.AppendText("Score.txt"))
+            {
+                sw.WriteLine(text);
+            }
+            
+            try
+            {
+                using (StreamReader sr = new StreamReader("Score.txt"))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        scores.Add(line);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("The file could not be read:");
+                Console.WriteLine(e.Message);
+            }       
+            scores.Sort();
+
+            using (StreamWriter sw = new StreamWriter("Score.txt"))
+            {
+                foreach (var item in scores)
+                {
+                    sw.WriteLine(item);
+                }
+            }
+            if (scores.Count >= 10)
+            {
+                Console.WriteLine("\nTop 10 high scores:");
+                for (int i = 0; i < 10; i++)
+                    Console.WriteLine(scores[i]);
+            }
+            else
+            { 
+                Console.WriteLine("\nHigh scores:");
+                foreach (var item in scores)
+                    Console.WriteLine(item);
+            }
+        }
+
+        private void top ()
+        {
+            try
+            {
+                using (StreamReader sr = new StreamReader("Score.txt"))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        scores.Add(line);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("The file could not be read:");
+                Console.WriteLine(e.Message);
+            }
+            if (scores.Count >= 10)
+            {
+                Console.WriteLine("\nTop 10 high scores:");
+                for (int i = 0; i < 10; i++)
+                    Console.WriteLine(scores[i]);
+            }
+            else
+            {
+                Console.WriteLine("\nHigh scores:");
+                foreach (var item in scores)
+                    Console.WriteLine(item);
+            }
         }
 
         private int findIndex(int number)
@@ -114,7 +206,10 @@ namespace Memory
         private void Print()
         {
             int number = 0;
+            int listLenght = list.Count;
             string str;
+            bool color = false;
+            colors('m');
             Console.Clear();
 
             for (int k = 0; k < height; k++)
@@ -125,28 +220,66 @@ namespace Memory
                 for (int j = 0; j < width; j++)
                 {
                     if (Duplicate(number, list.ToArray()))
+                    {
                         str = randomizedWords[number];
+                        color = true;
+                    }      
                     else
+                    {
                         str = number.ToString();
+                        color = false;
+                    }         
+                    colors('1');
                     Console.Write("|");
                     for (int i = 0; i < (lenght - str.Length) / 2; i++)
                         Console.Write(" ");
+                    if (color)
+                    {
+                        colors('2');
+                        if (listLenght != 0 && listLenght % 2 == 0)
+                        {
+                            if (!red)
+                                colors('6');
+                            else
+                            {
+                                colors('6');
+                                if (number == list[listLenght - 2] || number == list[listLenght - 1])
+                                    colors('4');
+                            }
+                        }
+                        else if (listLenght > 2)
+                        {
+                            if (number != list[listLenght - 1])
+                                colors('6');
+                        }
+                    }
+                    else
+                        colors('w');
                     Console.Write(str);
                     for (int i = 0; i < (lenght - str.Length + 1) / 2; i++)
                         Console.Write(" ");
                     number++;
                 }
+                colors('1');
                 Console.Write("|\n");
                 PrintLineVertical();
             }
 
             PrintLineHorizontal();
-            Console.WriteLine("\nGuess chances: " + chances.ToString());
-            Console.WriteLine("Difficulty level: " + difficulty);
+            colors('1');
+            Console.Write("\nGuess chances: ");
+            colors('5');
+            Console.WriteLine(chances.ToString());
+            colors('1');
+            Console.Write("Difficulty level: ");
+            colors('7');
+            Console.WriteLine(difficulty + "\n");
+            colors('1');
         }
 
         private void PrintLineHorizontal()
         {
+            colors('1');
             Console.Write(" ");
             for (int i = 0; i < lenght * width + width - 1; i++)
                 Console.Write("-");
@@ -155,6 +288,7 @@ namespace Memory
 
         private void PrintLineVertical()
         {
+            colors('1');
             for (int j = 0; j < width; j++)
             {
                 Console.Write("|");
@@ -193,9 +327,11 @@ namespace Memory
 
         private int height, width, lenght, chances, trials;
         private string difficulty;
+        private bool red;
         private string[] randomizedWords;
         private int[] positionIndex;
         private List<int> list = new List<int>();
+        private List<string> scores = new List<string>();
         private Stopwatch sw = new Stopwatch();
 
         static int theLongestWord(string[] lines)
@@ -207,6 +343,109 @@ namespace Memory
                     max = line.Length;
             }
             return max;
+        }
+
+        static void colors(char zmienna)
+        {
+            switch (zmienna)
+            {
+                case '1':
+                    Console.ForegroundColor = ConsoleColor.White;
+                    break;
+                case '2':
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    break;
+                case '3':
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    break;
+                case '4':
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                case '5':
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    break;
+                case '6':
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    break;
+                case '7':
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    break;
+                case '8':
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                    break;
+                case 'q':
+                    Console.ForegroundColor = ConsoleColor.Black;
+                    break;
+                case 'w':
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    break;
+                case 'e':
+                    Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                    break;
+                case 'r':
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    break;
+                case 't':
+                    Console.ForegroundColor = ConsoleColor.DarkCyan;
+                    break;
+                case 'y':
+                    Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    break;
+                case 'u':
+                    Console.ForegroundColor = ConsoleColor.DarkBlue;
+                    break;
+                case 'i':
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    break;
+                case 'a':
+                    Console.BackgroundColor = ConsoleColor.White;
+                    break;
+                case 's':
+                    Console.BackgroundColor = ConsoleColor.Yellow;
+                    break;
+                case 'd':
+                    Console.BackgroundColor = ConsoleColor.Magenta;
+                    break;
+                case 'f':
+                    Console.BackgroundColor = ConsoleColor.Red;
+                    break;
+                case 'g':
+                    Console.BackgroundColor = ConsoleColor.Cyan;
+                    break;
+                case 'h':
+                    Console.BackgroundColor = ConsoleColor.Green;
+                    break;
+                case 'j':
+                    Console.BackgroundColor = ConsoleColor.Blue;
+                    break;
+                case 'k':
+                    Console.BackgroundColor = ConsoleColor.Gray;
+                    break;
+                case 'z':
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    break;
+                case 'x':
+                    Console.BackgroundColor = ConsoleColor.DarkYellow;
+                    break;
+                case 'c':
+                    Console.BackgroundColor = ConsoleColor.DarkMagenta;
+                    break;
+                case 'v':
+                    Console.BackgroundColor = ConsoleColor.DarkRed;
+                    break;
+                case 'b':
+                    Console.BackgroundColor = ConsoleColor.DarkCyan;
+                    break;
+                case 'n':
+                    Console.BackgroundColor = ConsoleColor.DarkGreen;
+                    break;
+                case 'm':
+                    Console.BackgroundColor = ConsoleColor.DarkBlue;
+                    break;
+                case ',':
+                    Console.BackgroundColor = ConsoleColor.DarkGray;
+                    break;
+            }
         }
     }
 
