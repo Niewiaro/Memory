@@ -20,6 +20,7 @@ namespace Memory
                     break;
             }
             Print();
+            RandomNoDuplicate(height * width / 2, words.Length);
         }
 
         private void Print()
@@ -68,6 +69,40 @@ namespace Memory
                     Console.Write(" ");
             }
             Console.Write("|\n");
+        }
+
+        private int RandomNoDuplicate(int amount, int number)
+        {
+            int[] arrey = new int[amount];
+            Random rand = new Random();
+            int tmp;
+
+            for (int i = 0; i < amount; i++)
+            {
+                do
+                {
+                    tmp = rand.Next(number + 1);
+                }while (Duplicate(tmp, arrey));
+                arrey[i] = tmp;
+            }
+
+            foreach (var item in arrey)
+            {
+                Console.WriteLine(item);
+            }
+                
+
+            return 0;
+        }
+
+        private bool Duplicate(int tmp, int[] arrey)
+        {
+            foreach (var item in arrey)
+            {
+                if (item == tmp)
+                    return true;
+            }
+            return false;
         }
 
         private int height, width, lenght;
