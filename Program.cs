@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Memory
 {
@@ -7,7 +8,7 @@ namespace Memory
         public Matrix(int level, string[] words)
         {
             lenght = theLongestWord(words);
-            
+
             switch (level)
             {
                 case 1:
@@ -19,8 +20,73 @@ namespace Memory
                     width = 4;
                     break;
             }
+
+            int hw = height * width;
+            int[] wordIndex = RandomNoDuplicate(hw / 2, words.Length);
+            Array.Resize(ref positionIndex, hw);
+            positionIndex = RandomNoDuplicate(hw, hw);
+            for (int i = 0; i < positionIndex.Length; i++)
+            {
+                positionIndex[i]--;
+            }
+            Array.Resize(ref randomizedWords, hw);
+
+            for (int i = 0, j = 0; i < hw; i++)
+            {
+                randomizedWords[positionIndex[i++]] = words[wordIndex[j]];
+                randomizedWords[positionIndex[i]] = words[wordIndex[j++]];
+            }
+
             Print();
-            RandomNoDuplicate(height * width / 2, words.Length);
+        }
+
+        public bool Play(int number)
+        {
+            if (number < 0 || number > width * height)
+                return true;
+            if (!list.Contains(number))
+                list.Add(number);
+            int listLenght = list.Count;
+            int index = -1;
+
+            Print(); //before deletion
+
+            if (listLenght != 0 && listLenght % 2 == 0)
+            {
+                index = findIndex(list[listLenght - 1]);
+                if (index % 2 == 0)
+                {
+                    if (findIndex(list[listLenght - 2]) != index + 1)
+                    {
+                        list.RemoveAt(listLenght - 1);
+                        list.RemoveAt(listLenght - 2);
+                    }
+                }
+
+                else
+                {
+                    if (findIndex(list[listLenght - 2]) != index - 1)
+                    {
+                        list.RemoveAt(listLenght - 1);
+                        list.RemoveAt(listLenght - 2);
+                    }
+                }
+            }
+            if (list.Count == width * height)
+                return false;
+            return true;            
+        }
+
+        private int findIndex(int number)
+        {
+            int index = 0;
+            foreach (var item in positionIndex)
+            {
+                if (item == number)
+                    return index;
+                index++;
+            }
+            return -1;
         }
 
         private void Print()
@@ -36,12 +102,15 @@ namespace Memory
 
                 for (int j = 0; j < width; j++)
                 {
+                    if (Duplicate(number, list.ToArray()))
+                        str = randomizedWords[number];
+                    else
+                        str = number.ToString();
                     Console.Write("|");
-                    for (int i = 0; i < lenght / 2; i++)
+                    for (int i = 0; i < (lenght - str.Length) / 2; i++)
                         Console.Write(" ");
-                    str = number.ToString();
                     Console.Write(str);
-                    for (int i = 0; i < (lenght / 2) - str.Length + 1; i++)
+                    for (int i = 0; i < (lenght - str.Length + 1) / 2; i++)
                         Console.Write(" ");
                     number++;
                 }
@@ -71,7 +140,7 @@ namespace Memory
             Console.Write("|\n");
         }
 
-        private int RandomNoDuplicate(int amount, int number)
+        private int[] RandomNoDuplicate(int amount, int number)
         {
             int[] arrey = new int[amount];
             Random rand = new Random();
@@ -85,14 +154,7 @@ namespace Memory
                 }while (Duplicate(tmp, arrey));
                 arrey[i] = tmp;
             }
-
-            foreach (var item in arrey)
-            {
-                Console.WriteLine(item);
-            }
-                
-
-            return 0;
+            return arrey;
         }
 
         private bool Duplicate(int tmp, int[] arrey)
@@ -106,6 +168,9 @@ namespace Memory
         }
 
         private int height, width, lenght;
+        private string[] randomizedWords;
+        private int[] positionIndex;
+        private List<int> list = new List<int>();
 
         static int theLongestWord(string[] lines)
         {
@@ -126,6 +191,7 @@ namespace Memory
             string file = "Words.txt";
             string[] lines = System.IO.File.ReadAllLines(file);
             int difficulty = 0;
+            int guess = -1;
 
             Console.WriteLine("Welcome to memory game!\n");
             Console.WriteLine("Select difficulty level:\n1 - Easy\t\t2 - Hard");
@@ -149,6 +215,12 @@ namespace Memory
             } while (difficulty == 0);
             
             Matrix Memory = new Matrix(difficulty, lines);
+
+            do
+            {
+                if (!Int32.TryParse(Console.ReadLine(), out guess))
+                    continue;                    
+            } while (Memory.Play(guess));
             
         }
     }
