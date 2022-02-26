@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Memory
 {
@@ -24,6 +25,7 @@ namespace Memory
                     difficulty = "HARD";
                     break;
             }
+            trials = chances;
 
             int hw = height * width;
             int[] wordIndex = RandomNoDuplicate(hw / 2, words.Length);
@@ -46,6 +48,7 @@ namespace Memory
 
         public bool Play(int number)
         {
+            sw.Start();
             if (number < 0 || number > width * height)
                 return true;
             if (!list.Contains(number))
@@ -81,9 +84,18 @@ namespace Memory
                 }
             }
             if (list.Count == width * height)
+            {
+                sw.Stop();
+                Console.WriteLine("\nYou won! :)");  
+                Console.WriteLine("Your time was {0}", sw.Elapsed);
+                Console.WriteLine("You solved the memory game after using {0} chances", trials - chances);
                 return false;
+            }
             if (chances == 0)
+            {
+                Console.WriteLine("\nYou have lost! :("); 
                 return false;
+            }
             return true;            
         }
 
@@ -179,11 +191,12 @@ namespace Memory
             return false;
         }
 
-        private int height, width, lenght, chances;
+        private int height, width, lenght, chances, trials;
         private string difficulty;
         private string[] randomizedWords;
         private int[] positionIndex;
         private List<int> list = new List<int>();
+        private Stopwatch sw = new Stopwatch();
 
         static int theLongestWord(string[] lines)
         {
@@ -206,35 +219,39 @@ namespace Memory
             int difficulty = 0;
             int guess = -1;
 
-            Console.WriteLine("Welcome to memory game!\n");
-            Console.WriteLine("Select difficulty level:\n1 - Easy\t\t2 - Hard");
-
             do
             {
-                var input = Console.ReadKey();
+                Console.WriteLine("Welcome to memory game!\n");
+                Console.WriteLine("Select difficulty level:\n1 - Easy\t\t2 - Hard");
 
-                switch (input.Key)
+                do
                 {
-                    case ConsoleKey.D1:
-                        difficulty = 1;
-                        break;
-                    case ConsoleKey.D2:
-                        difficulty = 2;
-                        break;
-                    default:
-                        Console.WriteLine("\nChoose one of the available options");
-                        break;
-                }
-            } while (difficulty == 0);
-            
-            Matrix Memory = new Matrix(difficulty, lines);
+                    var input = Console.ReadKey();
 
-            do
-            {
-                if (!Int32.TryParse(Console.ReadLine(), out guess))
-                    continue;                    
-            } while (Memory.Play(guess));
-            
+                    switch (input.Key)
+                    {
+                        case ConsoleKey.D1:
+                            difficulty = 1;
+                            break;
+                        case ConsoleKey.D2:
+                            difficulty = 2;
+                            break;
+                        default:
+                            Console.WriteLine("\nChoose one of the available options...");
+                            break;
+                    }
+                } while (difficulty == 0);
+
+                Matrix Memory = new Matrix(difficulty, lines);
+    
+                do
+                {
+                    if (!Int32.TryParse(Console.ReadLine(), out guess))
+                        continue;
+                } while (Memory.Play(guess));
+
+                Console.WriteLine("\nPress \"Y\" to play again...");
+            } while (Console.ReadKey().Key == ConsoleKey.Y);          
         }
     }
 }
