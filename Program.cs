@@ -14,10 +14,14 @@ namespace Memory
                 case 1:
                     height = 2;
                     width = 4;
+                    chances = 10;
+                    difficulty = "EASY";
                     break;
                 case 2:
                     height = 4;
                     width = 4;
+                    chances = 15;
+                    difficulty = "HARD";
                     break;
             }
 
@@ -58,8 +62,10 @@ namespace Memory
                 {
                     if (findIndex(list[listLenght - 2]) != index + 1)
                     {
+                        chances--;
+                        Print();
                         list.RemoveAt(listLenght - 1);
-                        list.RemoveAt(listLenght - 2);
+                        list.RemoveAt(listLenght - 2);       
                     }
                 }
 
@@ -67,12 +73,16 @@ namespace Memory
                 {
                     if (findIndex(list[listLenght - 2]) != index - 1)
                     {
+                        chances--;
+                        Print();
                         list.RemoveAt(listLenght - 1);
-                        list.RemoveAt(listLenght - 2);
+                        list.RemoveAt(listLenght - 2);         
                     }
                 }
             }
             if (list.Count == width * height)
+                return false;
+            if (chances == 0)
                 return false;
             return true;            
         }
@@ -119,6 +129,8 @@ namespace Memory
             }
 
             PrintLineHorizontal();
+            Console.WriteLine("\nGuess chances: " + chances.ToString());
+            Console.WriteLine("Difficulty level: " + difficulty);
         }
 
         private void PrintLineHorizontal()
@@ -167,7 +179,8 @@ namespace Memory
             return false;
         }
 
-        private int height, width, lenght;
+        private int height, width, lenght, chances;
+        private string difficulty;
         private string[] randomizedWords;
         private int[] positionIndex;
         private List<int> list = new List<int>();
