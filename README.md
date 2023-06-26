@@ -11,6 +11,7 @@ I developed this game because programming is my passion. I love the freedom and 
 - [Usage](#usage)
 - [Features](#features)
 - [License](#license)
+- [Contact](#contact)
 
 ## Installation
 
@@ -40,3 +41,8 @@ git clone https://github.com/Niewiaro/Memory.git
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+## Contact
+
+Created by [@niewiaro](https://github.com/Niewiaro)  
+For any inquiries, please contact me at niewiarowski.kuba@gmail.com.
